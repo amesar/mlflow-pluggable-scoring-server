@@ -1,0 +1,12 @@
+artifact_path: onnx-model
+flavors:
+  onnx:
+    data: model.onnx
+    onnx_version: 1.7.0
+  python_function:
+    data: model.onnx
+    env: conda.yaml
+    loader_module: mlflow.onnx
+    python_version: 3.7.6
+run_id: 7a7022b7d5ce48e4ac789808c6d3250e
+utc_time_created: '2020-09-18 16:48:22.137953'

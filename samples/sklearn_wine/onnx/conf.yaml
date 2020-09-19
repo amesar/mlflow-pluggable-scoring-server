@@ -1,0 +1,16 @@
+port: 5005
+host: localhost
+
+plugin: samples/sklearn_wine/onnx/plugin.py
+model_uri: file:samples/sklearn_wine/7a7022b7d5ce48e4ac789808c6d3250e/artifacts/onnx-model
+#model_uri: models:/sklearn_wine/1
+
+packages: [ 
+  onnx==1.7.0,
+  onnxmltools==1.7.0,
+  onnxruntime==1.4.0 ]
+
+logging: {
+  level: DEBUG,
+  format: '[%(asctime)s] %(levelname)s %(module)s:%(funcName)s:%(lineno)d: %(message)s'
+}
