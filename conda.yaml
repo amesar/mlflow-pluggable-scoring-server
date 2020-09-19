@@ -1,4 +1,4 @@
-name: mlflow-scoring-server
+name: mlflow-pluggable-scoring-server
 channels:
 - defaults
 dependencies:
