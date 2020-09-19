@@ -84,8 +84,8 @@ curl -X POST \
 **Keras MNIST example**
 ```
 curl -X POST \
-  -H "Content-Type:application/json" \
-  -H "Accept:application/octet-stream" \
+  -H "Content-Type:application/octet-stream" \
+  -H "Accept:application/json" \
   --data-binary @samples/keras_mnist/data/mnist_0_10.png \
   http://localhost:5005/api/predict
 ```
