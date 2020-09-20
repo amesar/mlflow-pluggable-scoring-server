@@ -1,9 +1,9 @@
 port: 5005
 host: localhost
 
-plugin: samples/keras_mnist/plugin.py
+plugin: plugin_samples/keras_mnist/plugin.py
 #model_uri: models:/keras_mnist/1
-model_uri: file:samples/keras_mnist/94580121e06f483691151c8337f64b48/artifacts/keras-model
+model_uri: file:plugin_samples/keras_mnist/94580121e06f483691151c8337f64b48/artifacts/keras-model
 packages:  [ tensorflow==2.3.0, Pillow ]
 
 logging: {

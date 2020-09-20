@@ -1,8 +1,8 @@
 port: 5005
 host: localhost
 
-plugin: samples/sklearn_wine/plugin.py
-model_uri: file:samples/sklearn_wine/7a7022b7d5ce48e4ac789808c6d3250e/artifacts/sklearn-model
+plugin: plugin_samples/sklearn_wine/plugin.py
+model_uri: file:plugin_samples/sklearn_wine/7a7022b7d5ce48e4ac789808c6d3250e/artifacts/sklearn-model
 #model_uri: models:/sklearn_wine/1
 
 packages: [ scikit-learn==0.20.2 ]

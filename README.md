@@ -17,19 +17,19 @@ Following examples are provided:
 
 |Algorithm | Config | Plugin | Data |
 |-----|----------|---------|---|
-| Sklearn Wine | [conf.yaml](samples/sklearn_wine/conf.yaml) | [plugin.py](samples/sklearn_wine/plugin.py) | [predict-wine-quality.json](samples/sklearn_wine/data/predict-wine-quality.json) |
-| Sklearn Wine (ONNX)| [conf.yaml](samples/sklearn_wine/onnx/conf.yaml) | [plugin.py](samples/sklearn_wine/onnx/plugin.py) | [predict-wine-quality.json](samples/sklearn_wine/data/predict-wine-quality.json) |
-| Keras MNIST | [conf.yaml](samples/keras_mnist/conf.yaml) | [plugin.py](samples/keras_mnist/plugin.py) | [mnist_0_10.png](samples/keras_mnist/data/mnist_0_10.png) |
+| Sklearn Wine | [conf.yaml](plugin_samples/sklearn_wine/conf.yaml) | [plugin.py](plugin_samples/sklearn_wine/plugin.py) | [predict-wine-quality.json](plugin_samples/sklearn_wine/data/predict-wine-quality.json) |
+| Sklearn Wine (ONNX)| [conf.yaml](plugin_samples/sklearn_wine/onnx/conf.yaml) | [plugin.py](plugin_samples/sklearn_wine/onnx/plugin.py) | [predict-wine-quality.json](plugin_samples/sklearn_wine/data/predict-wine-quality.json) |
+| Keras MNIST | [conf.yaml](plugin_samples/keras_mnist/conf.yaml) | [plugin.py](plugin_samples/keras_mnist/plugin.py) | [mnist_0_10.png](plugin_samples/keras_mnist/data/mnist_0_10.png) |
 
 ## Configure
 
-Sample Sklearn [conf.yaml](samples/sklearn_wine/conf.yaml).
+Sample Sklearn [conf.yaml](plugin_samples/sklearn_wine/conf.yaml).
 ```
 port: 5000
 host: localhost
 
-plugin: samples/sklearn_wine/plugin.py
-model_uri: file:samples/sklearn_wine/7a7022b7d5ce48e4ac789808c6d3250e/artifacts/sklearn-model
+plugin: plugin_samples/sklearn_wine/plugin.py
+model_uri: file:plugin_samples/sklearn_wine/7a7022b7d5ce48e4ac789808c6d3250e/artifacts/sklearn-model
 #model_uri: models:/sklearn_wine/1
 
 packages: [ scikit-learn==0.20.2 ]
@@ -44,17 +44,17 @@ logging: {
 
 **Sklearn**
 ```
-python -u -m mlflow_server.webserver --conf samples/sklearn_win/conf.yaml
+python -u -m mlflow_server.webserver --conf plugin_samples/sklearn_win/conf.yaml
 ```
 
 **Sklearn ONNX**
 ```
-python -u -m mlflow_server.webserver --conf samples/sklearn_win/onnx/conf.yaml
+python -u -m mlflow_server.webserver --conf plugin_samples/sklearn_win/onnx/conf.yaml
 ```
 
 **Keras MNIST**
 ```
-python -u -m mlflow_server.webserver --conf samples/keras_mnist/conf.yaml
+python -u -m mlflow_server.webserver --conf plugin_samples/keras_mnist/conf.yaml
 ```
 
 ### Options
@@ -74,7 +74,7 @@ optional arguments:
 curl -X POST \
   -H "Content-Type:application/json" \
   -H "Accept:application/json" \
-  --data-binary @samples/sklearn_wine/data/predict-wine-quality.json \
+  --data-binary @plugin_samples/sklearn_wine/data/predict-wine-quality.json \
   http://localhost:5005/api/predict
 ```
 ```
@@ -86,7 +86,7 @@ curl -X POST \
 curl -X POST \
   -H "Content-Type:application/octet-stream" \
   -H "Accept:application/json" \
-  --data-binary @samples/keras_mnist/data/mnist_0_10.png \
+  --data-binary @plugin_samples/keras_mnist/data/mnist_0_10.png \
   http://localhost:5005/api/predict
 ```
 ```
