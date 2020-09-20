@@ -6,12 +6,16 @@ import sys
 import os
 import json
 import logging
+import click
 import importlib
 from flask import Flask, request, make_response
 from flask_restplus import Api, Resource
 
 app = Flask(__name__)
 api = Api(app, version="1.0", title="MLflow Pluggable Scoring API", description="Scoring API")
+
+plugin = None
+model = None
 
 # Class name of plugin is fixed.
 plugin_full_class= "plugin.Plugin"
@@ -84,18 +88,17 @@ class StatusCollection(Resource):
         }
         return dct
 
-if __name__ == "__main__":
+@click.command()
+@click.option("--conf", help="Config file.", default="conf.yaml", type=str)
+def main(conf):
+    global plugin, model
+    print("Options:")
+    for k,v in locals().items():
+        print(f"  {k}: {v}")
     import yaml
-    from argparse import ArgumentParser
-    parser = ArgumentParser()
-    parser.add_argument("--conf", dest="conf", help="conf file", default="conf.yaml")
-    args = parser.parse_args()
-    print("Arguments:")
-    for arg in vars(args):
-        print(f"  {arg}: {getattr(args, arg)}")
 
-    # Open conf file
-    with open(args.conf, "r") as f:
+    # Open config file
+    with open(conf, "r") as f:
         conf = yaml.safe_load(f)
     print("conf:",conf)
 
@@ -124,3 +127,5 @@ if __name__ == "__main__":
     # Run app
     app.run(debug=True, host=conf["host"], port=conf["port"])
 
+if __name__ == "__main__":
+    main()
