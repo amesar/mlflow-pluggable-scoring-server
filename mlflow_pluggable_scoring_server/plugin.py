@@ -1,10 +1,17 @@
 """
 Base plugin class for pluggable scoring.
 """
-#from collection.abc import abstractmethod, ABCMeta
 from abc import abstractmethod, ABCMeta
 
 class BasePlugin(metaclass=ABCMeta):
+
+    @abstractmethod
+    def load_model(self, model_uri):
+        """
+        Load a model.
+        :param model_uri: Standard MLflow model URI.
+        :return: Model.
+        """
 
     @abstractmethod
     def predict(self, model, data):
@@ -13,14 +20,6 @@ class BasePlugin(metaclass=ABCMeta):
         :param model: Model to predict with.
         :param data: Data to predict.
         :return: Predictions.
-        """
-
-    @abstractmethod
-    def load_model(self, model_uri):
-        """
-        Load a model.
-        :param model_uri: Standard MLflow model URI.
-        :return: Model.
         """
 
     @abstractmethod
