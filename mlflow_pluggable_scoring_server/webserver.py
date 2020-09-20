@@ -14,8 +14,8 @@ from flask_restplus import Api, Resource
 app = Flask(__name__)
 api = Api(app, version="1.0", title="MLflow Pluggable Scoring API", description="Scoring API")
 
-plugin = None
-model = None
+_plugin = None
+_model = None
 
 # Class name of plugin is fixed.
 plugin_full_class= "plugin.Plugin"
@@ -57,16 +57,16 @@ class Predict(Resource):
         logging.debug(f"accept: {accept}")
         content_type = request.headers.get("Content-type")
         logging.debug(f"content_type: {content_type}")
-        logging.debug(f"plugin.request_content_type: {plugin.request_content_type()}")
-        if (plugin.request_content_type() != content_type):
-            return make_error_response(400,f"Request content-type must be '{plugin.request_content_type()}' but found '{content_type}'")
+        logging.debug(f"plugin.request_content_type: {_plugin.request_content_type()}")
+        if (_plugin.request_content_type() != content_type):
+            return make_error_response(400,f"Request content-type must be '{_plugin.request_content_type()}' but found '{content_type}'")
 
         data = request.get_data()
         logging.debug(f"request.data.type: {type(data)}")
         logging.debug(f"request.data.len: {len(data)}")
 
-        logging.debug(f"plugin: {plugin}")
-        rsp = plugin.predict(model, data)
+        logging.debug(f"plugin: {_plugin}")
+        rsp = _plugin.predict(_model, data)
         logging.debug(f"rsp: {rsp}")
         return make_response(rsp)
 
@@ -89,43 +89,52 @@ class StatusCollection(Resource):
         return dct
 
 @click.command()
-@click.option("--conf", help="Config file.", default="conf.yaml", type=str)
-def main(conf):
-    global plugin, model
+#@click.option("--server-uri", help="Server URI.", default="conf.yaml", type=str)
+@click.option("--host", help="Host.", default="localhost", type=str)
+@click.option("--port", help="Port.", default=5005, type=int)
+@click.option("--plugin", help="plugin.", required=True, type=str)
+@click.option("--model-uri", help="Model URI.", required=True, type=str)
+@click.option("--packages", help="PyPI packages (comma delimited).", default=None, type=str)
+@click.option("--conf", help="Webserver configuration file.", required=False, type=str)
+
+def main(conf, host, port, plugin, model_uri, packages):
+    global _plugin, _model
     print("Options:")
     for k,v in locals().items():
         print(f"  {k}: {v}")
     import yaml
+    packages = [] if packages is None else packages.split(",") 
 
-    # Open config file
-    with open(conf, "r") as f:
-        conf = yaml.safe_load(f)
-    print("conf:",conf)
+    # Set config options
+    if conf and os.path.exists(conf):
+        with open(conf, "r") as f:
+            conf = yaml.safe_load(f)
+        print("conf:",conf)
+        level = conf["logging"]["level"]
+        format = conf["logging"]["format"]
+        logging.basicConfig(level=conf["logging"]["level"], format=conf["logging"]["format"])
+    else:
+        level = "INFO"
+        format = "[%(asctime)s] %(levelname)s @ %(module)s:%(funcName)s:%(lineno)d: %(message)s"
 
     # Set logging config
-    fmt = "[%(asctime)s] %(levelname)s @ %(module)s:%(funcName)s:%(lineno)d: %(message)s"
-    logging.basicConfig(level=conf["logging"]["level"], format=conf["logging"]["format"])
+    logging.basicConfig(level=level, format=format)
     print("logging_level:",logging.getLevelName(logging.getLogger().getEffectiveLevel()))
 
     # Install Python packages
-    packages = conf["packages"]
     for pkg in packages:
         run_command(f"pip install {pkg}")
  
     # Load model plugin
-    model_uri = conf["model_uri"]
-    print("model_uri:",model_uri)
-
-    plugin_class = load_class(conf["plugin"], plugin_full_class)
-    plugin = plugin_class()
+    plugin_class = load_class(plugin, plugin_full_class)
+    _plugin = plugin_class()
     print("plugin:",plugin)
 
-    model = plugin.load_model(model_uri)
-    #print("model:",model)
-    print("model.type:",type(model))
+    _model = _plugin.load_model(model_uri)
+    print("model.type:",type(_model))
 
     # Run app
-    app.run(debug=True, host=conf["host"], port=conf["port"])
+    app.run(debug=True, host=host, port=port)
 
 if __name__ == "__main__":
     main()
