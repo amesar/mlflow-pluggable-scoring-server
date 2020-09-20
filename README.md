@@ -22,7 +22,7 @@ Each plugin sample has a plugin.py file, sample data and a sample MLflow run.
 |Algorithm |  Plugin | Data |
 |-----|----------|---------|
 | Keras MNIST |  [plugin.py](plugin_samples/keras_mnist/plugin.py) | [mnist_0_10.png](plugin_samples/keras_mnist/data/mnist_0_10.png) |
-| Sklearn Wine | [plugin.py](plugin_samples/sklearn_wine/plugin.py) | [predict-wine-quality.json](plugin_samples/sklearn_wine/data/predict-wine-quality.json) |
+| Sklearn Wine | [plugin.py](plugin_samples/sklearn_wine/plugin.py) | [predict-wine-quality.json](plugin_samples/data/predict-wine-quality.json) |
 | Sklearn Wine (ONNX)| [plugin.py](plugin_samples/sklearn_wine/onnx/plugin.py) | ibid |
 
 ## Plugin
@@ -176,7 +176,7 @@ curl -X POST \
 curl -X POST \
   -H "Content-Type:application/json" \
   -H "Accept:application/json" \
-  --data-binary @plugin_samples/sklearn_wine/data/predict-wine-quality.json \
+  --data-binary @plugin_samples/data/predict-wine-quality.json \
   http://localhost:5005/api/predict
 ```
 ```
