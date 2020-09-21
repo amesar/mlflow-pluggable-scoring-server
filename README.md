@@ -25,7 +25,7 @@ Following examples are provided:
 |-----|----------|---------|--|--|
 | Keras MNIST |  [plugin.py](plugin_samples/keras_mnist/plugin.py) | [model](plugin_samples/keras_mnist/94580121e06f483691151c8337f64b48/artifacts/keras-model) |  [mnist_0_10.png](plugin_samples/keras_mnist/data/mnist_0_10.png) | PNG image request and JSON response |
 | Sklearn Wine | [plugin.py](plugin_samples/sklearn_wine/plugin.py) |  [model](plugin_samples/sklearn_wine/7a7022b7d5ce48e4ac789808c6d3250e/artifacts/sklearn-model) | [predict-wine-quality.json](plugin_samples/data/predict-wine-quality.json) | JSON request and JSON response |
-| Sklearn Wine (ONNX)| [plugin.py](plugin_samples/sklearn_wine/onnx/plugin.py) |  [model](plugin_samples/sklearn_wine/7a7022b7d5ce48e4ac789808c6d3250e/artifacts/onnx-model) | [predict-wine-quality.json](plugin_samples/data/predict-wine-quality.json) | JSON request and JSON response |
+| Sklearn Wine (ONNX)| [plugin.py](plugin_samples/sklearn_wine/onnx_plugin.py) |  [model](plugin_samples/sklearn_wine/7a7022b7d5ce48e4ac789808c6d3250e/artifacts/onnx-model) | [predict-wine-quality.json](plugin_samples/data/predict-wine-quality.json) | JSON request and JSON response |
 | Spark ML | [plugin.py](plugin_samples/sparkml_wine/plugin.py) |  N/A | [predict-wine-quality.json](plugin_samples/data/predict-wine-quality.json) | JSON request and JSON response |
 
 ## Plugin
@@ -138,7 +138,7 @@ python -u -m mlflow_pluggable_scoring_server.webserver \
 ```
 python -u -m mlflow_pluggable_scoring_server.webserver \
   --host localhost --port 5005 \
-  --plugin-path plugin_samples/sklearn_wine/onnx/plugin.py \
+  --plugin-path plugin_samples/sklearn_wine/onnx_plugin.py \
   --model-uri plugin_samples/sklearn_wine/7a7022b7d5ce48e4ac789808c6d3250e/artifacts/onnx-model \
   --packages onnx==1.7.0,onnxmltools==1.7.0,onnxruntime==1.4.0
 ```
