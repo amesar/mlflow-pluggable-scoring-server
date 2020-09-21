@@ -7,25 +7,15 @@ import os
 import json
 import logging
 import click
-import importlib
 from flask import Flask, request, make_response
 from flask_restplus import Api, Resource
+from mlflow_pluggable_scoring_server.plugin import load_plugin
 
 app = Flask(__name__)
 api = Api(app, version="1.0", title="MLflow Pluggable Scoring API", description="Scoring API")
 
 _plugin = None
 _model = None
-
-def load_model_class(path, plugin_full_class):
-    if not os.path.exists(path):
-        raise Exception(f"File '{path}' does not exist")
-    sys.path.append(os.path.dirname(path))
-    class_str = plugin_full_class.split(".")[-1]
-    spec = importlib.util.spec_from_file_location(path, path)
-    module = spec.loader.load_module(spec.name)
-    model =  getattr(module, class_str)
-    return getattr(module, class_str)
 
 def run_command(cmd):
     from subprocess import Popen, PIPE
@@ -87,7 +77,6 @@ class StatusCollection(Resource):
         return dct
 
 @click.command()
-#@click.option("--server-uri", help="Server URI.", default="conf.yaml", type=str)
 @click.option("--host", help="Host.", default="localhost", type=str)
 @click.option("--port", help="Port.", default=5005, type=int)
 @click.option("--plugin-path", help="Plugin path.", required=True, type=str)
@@ -126,8 +115,7 @@ def main(conf, host, port, plugin_path, plugin_full_class, model_uri, packages):
         run_command(f"pip install {pkg}")
  
     # Load model plugin
-    plugin_class = load_model_class(plugin_path, plugin_full_class)
-    _plugin = plugin_class()
+    _plugin = load_plugin(plugin_path, plugin_full_class)
     logging.info(f"plugin.type: {type(_plugin)}")
 
     _model = _plugin.load_model(model_uri)

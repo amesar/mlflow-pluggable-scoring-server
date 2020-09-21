@@ -3,6 +3,26 @@ Base plugin class for pluggable scoring.
 """
 from abc import abstractmethod, ABCMeta
 
+def load_plugin(path, plugin_full_class):
+    """
+    Instantiate a plugin object from a Python file.
+    :param path: File path to plugin python file.
+    :param plugin_full_class: Full class path of plugin.
+    :return: Plugin object.
+    """
+    import os
+    import sys
+    import importlib
+    if not os.path.exists(path):
+        raise Exception(f"File '{path}' does not exist")
+    sys.path.append(os.path.dirname(path))
+    class_str = plugin_full_class.split(".")[-1]
+    spec = importlib.util.spec_from_file_location(path, path)
+    module = spec.loader.load_module(spec.name)
+    plugin = getattr(module, class_str)
+    return plugin()
+
+
 class BasePlugin(metaclass=ABCMeta):
 
     @abstractmethod
