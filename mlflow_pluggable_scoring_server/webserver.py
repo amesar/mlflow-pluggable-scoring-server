@@ -17,16 +17,14 @@ api = Api(app, version="1.0", title="MLflow Pluggable Scoring API", description=
 _plugin = None
 _model = None
 
-# Class name of plugin is fixed.
-plugin_full_class= "plugin.Plugin"
-
-def load_class(path, full_class_str):
+def load_model_class(path, plugin_full_class):
     if not os.path.exists(path):
         raise Exception(f"File '{path}' does not exist")
     sys.path.append(os.path.dirname(path))
-    class_str = full_class_str.split(".")[-1]
+    class_str = plugin_full_class.split(".")[-1]
     spec = importlib.util.spec_from_file_location(path, path)
     module = spec.loader.load_module(spec.name)
+    model =  getattr(module, class_str)
     return getattr(module, class_str)
 
 def run_command(cmd):
@@ -92,12 +90,13 @@ class StatusCollection(Resource):
 #@click.option("--server-uri", help="Server URI.", default="conf.yaml", type=str)
 @click.option("--host", help="Host.", default="localhost", type=str)
 @click.option("--port", help="Port.", default=5005, type=int)
-@click.option("--plugin", help="plugin.", required=True, type=str)
+@click.option("--plugin-path", help="Plugin path.", required=True, type=str)
+@click.option("--plugin-full-class", help="Plugin full class name. Default is 'plugin.Plugin'.", default="plugin.Plugin", type=str)
 @click.option("--model-uri", help="Model URI.", required=True, type=str)
 @click.option("--packages", help="PyPI packages (comma delimited).", default=None, type=str)
 @click.option("--conf", help="Webserver configuration file.", required=False, type=str)
 
-def main(conf, host, port, plugin, model_uri, packages):
+def main(conf, host, port, plugin_path, plugin_full_class, model_uri, packages):
     global _plugin, _model
     print("Options:")
     for k,v in locals().items():
@@ -110,28 +109,29 @@ def main(conf, host, port, plugin, model_uri, packages):
         with open(conf, "r") as f:
             conf = yaml.safe_load(f)
         print("conf:",conf)
-        level = conf["logging"]["level"]
-        format = conf["logging"]["format"]
+        log_level = conf["logging"]["level"]
+        log_format = conf["logging"]["format"]
         logging.basicConfig(level=conf["logging"]["level"], format=conf["logging"]["format"])
     else:
-        level = "INFO"
-        format = "[%(asctime)s] %(levelname)s @ %(module)s:%(funcName)s:%(lineno)d: %(message)s"
+        log_level = "INFO"
+        log_format = "[%(asctime)s] %(levelname)s @ %(module)s:%(funcName)s:%(lineno)d: %(message)s"
 
     # Set logging config
-    logging.basicConfig(level=level, format=format)
-    print("logging_level:",logging.getLevelName(logging.getLogger().getEffectiveLevel()))
+    logging.basicConfig(level=log_level, format=log_format)
+    logging.info(f"Log Level: {log_level}")
+    logging.info(f"Log EffectiveLevel: {logging.getLevelName(logging.getLogger().getEffectiveLevel())}")
 
     # Install Python packages
     for pkg in packages:
         run_command(f"pip install {pkg}")
  
     # Load model plugin
-    plugin_class = load_class(plugin, plugin_full_class)
+    plugin_class = load_model_class(plugin_path, plugin_full_class)
     _plugin = plugin_class()
-    print("plugin:",plugin)
+    logging.info(f"plugin.type: {type(_plugin)}")
 
     _model = _plugin.load_model(model_uri)
-    print("model.type:",type(_model))
+    logging.info(f"model.type: {type(_model)}")
 
     # Run app
     app.run(debug=True, host=host, port=port)
