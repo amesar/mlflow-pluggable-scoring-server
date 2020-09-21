@@ -7,7 +7,12 @@ MLfow provides a versatile scoring server based on the MLflow pyfunc flavor. In 
 This pluggable scoring server is an exploratory POC that provides the ability to plug in custom request or response payloads.
 It addresses the need to submit an image for scoring.
 
-Ideally, once this POC pluggable logic is finalized, it could be merged into the MLflow code base.
+## Limitations
+
+* Ideally, once this POC pluggable logic is finalized, it could/should be merged into the MLflow code base.
+* The installation of packages is rudimentary since they are installed in the current virtual environment. 
+The correct solution is to create a virtual environment on the fly like the MLflow scoring server does.
+* Docker image: TODO.
 
 ## Sample plugins
 
@@ -50,7 +55,6 @@ class BasePlugin(metaclass=ABCMeta):
         :param model_uri: Standard MLflow model URI.
         :return: Model.
         """
-
 
     @abstractmethod
     def predict(self, model, data):
