@@ -7,23 +7,21 @@ MLfow provides a versatile scoring server based on the MLflow pyfunc flavor. In 
 This pluggable scoring server is an exploratory POC that provides the ability to plug in custom request or response payloads.
 It addresses the need to submit an image for scoring.
 
-Ideally, once this POC pluggable logic is finalized, it should ideally be merged into the MLflow code base.
+Ideally, once this POC pluggable logic is finalized, it could be merged into the MLflow code base.
 
 ## Sample plugins
 
+A number of sample plugins are provided for convenience.
+Each sample has a plugin.py file, sample data and a sample MLflow model.
+
 Following examples are provided:
-* Keras MNIST - PNG image request and JSON response.
-* Sklearn Wine + ONNX version - JSON request and JSON response.
 
-Each plugin sample has a plugin.py file, sample data and a sample MLflow run.
-
-**Details**
-
-|Algorithm |  Plugin | Data |
-|-----|----------|---------|
-| Keras MNIST |  [plugin.py](plugin_samples/keras_mnist/plugin.py) | [mnist_0_10.png](plugin_samples/keras_mnist/data/mnist_0_10.png) |
-| Sklearn Wine | [plugin.py](plugin_samples/sklearn_wine/plugin.py) | [predict-wine-quality.json](plugin_samples/data/predict-wine-quality.json) |
-| Sklearn Wine (ONNX)| [plugin.py](plugin_samples/sklearn_wine/onnx/plugin.py) | ibid |
+|Algorithm |  Plugin | Model | Data | Note |
+|-----|----------|---------|--|--|
+| Keras MNIST |  [plugin.py](plugin_samples/keras_mnist/plugin.py) | [model](plugin_samples/keras_mnist/94580121e06f483691151c8337f64b48/artifacts/keras-model) |  [mnist_0_10.png](plugin_samples/keras_mnist/data/mnist_0_10.png) | PNG image request and JSON response |
+| Sklearn Wine | [plugin.py](plugin_samples/sklearn_wine/plugin.py) |  [model](plugin_samples/sklearn_wine/7a7022b7d5ce48e4ac789808c6d3250e/artifacts/sklearn-model) | [predict-wine-quality.json](plugin_samples/data/predict-wine-quality.json) | JSON request and JSON response |
+| Sklearn Wine (ONNX)| [plugin.py](plugin_samples/sklearn_wine/onnx/plugin.py) |  [model](plugin_samples/sklearn_wine/7a7022b7d5ce48e4ac789808c6d3250e/artifacts/onnx-model) | [predict-wine-quality.json](plugin_samples/data/predict-wine-quality.json) | JSON request and JSON response |
+| Spark ML | [plugin.py](plugin_samples/sparkml_wine/plugin.py) |  N/A | [predict-wine-quality.json](plugin_samples/data/predict-wine-quality.json) | JSON request and JSON response |
 
 ## Plugin
 
@@ -109,7 +107,7 @@ Run with model from sample run.
 ```
 python -u -m mlflow_pluggable_scoring_server.webserver \
   --host localhost --port 5005 \
-  --plugin plugin_samples/keras_mnist/plugin.py \
+  --plugin-path plugin_samples/keras_mnist/plugin.py \
   --model-uri file:plugin_samples/keras_mnist/94580121e06f483691151c8337f64b48/artifacts/keras-model \
   --packages tensorflow==2.3.0,Pillow
 ```
@@ -118,38 +116,49 @@ Run with model from Model Registry.
 ```
 python -u -m mlflow_pluggable_scoring_server.webserver \
   --host localhost --port 5005 \
-  --plugin plugin_samples/keras_mnist/plugin.py \
+  --plugin-path plugin_samples/keras_mnist/plugin.py \
   --model-uri models:/keras_mnist/Production \
   --packages tensorflow==2.3.0,Pillow
 ```
 
-### Sklearn
+### Sklearn Wine
 ```
 python -u -m mlflow_pluggable_scoring_server.webserver \
   --host localhost --port 5005 \
-  --plugin plugin_samples/sklearn_wine/plugin.py \
+  --plugin-path plugin_samples/sklearn_wine/plugin.py \
   --model-uri plugin_samples/sklearn_wine/7a7022b7d5ce48e4ac789808c6d3250e/artifacts/sklearn-model \
   --packages scikit-learn==0.20.2 
 ```
 
-### Sklearn ONNX
+### Sklearn Wine ONNX
 ```
 python -u -m mlflow_pluggable_scoring_server.webserver \
   --host localhost --port 5005 \
-  --plugin plugin_samples/sklearn_wine/onnx/plugin.py \
+  --plugin-path plugin_samples/sklearn_wine/onnx/plugin.py \
   --model-uri plugin_samples/sklearn_wine/7a7022b7d5ce48e4ac789808c6d3250e/artifacts/onnx-model \
   --packages onnx==1.7.0,onnxmltools==1.7.0,onnxruntime==1.4.0
+```
+
+### SparkML Wine
+```
+python -u -m mlflow_pluggable_scoring_server.webserver \
+  --host localhost --port 5005 \
+  --plugin-path plugin_samples/sparkml_wine/plugin.py \
+  --model-uri models:/sparkml_wine/1 \
+  --packages pyspark==2.4.5
 ```
 
 ### Options
 ```
 Options:
-  --host TEXT       Host.
-  --port INTEGER    Port.
-  --plugin TEXT     plugin.  [required]
-  --model-uri TEXT  Model URI.  [required]
-  --packages TEXT   PyPI packages (comma delimited).
-  --conf TEXT       Webserver configuration file.
+  --host TEXT               Host.
+  --port INTEGER            Port.
+  --plugin-path TEXT        Plugin path.  [required]
+  --plugin-full-class TEXT  Plugin full class name. Default is 'plugin.Plugin'.
+  --model-uri TEXT          Model URI.  [required]
+  --packages TEXT           PyPI packages (comma delimited).
+  --conf TEXT               Webserver configuration file.
+  --help                    Show this message and exit.
 ```
 
 
@@ -158,7 +167,7 @@ Options:
 
 Score request data.
 
-#### Keras MNIST
+### Keras MNIST
 ```
 curl -X POST \
   -H "Content-Type:application/octet-stream" \
@@ -171,7 +180,7 @@ curl -X POST \
 ```
 
 
-#### Sklearn wine
+### Wine - Sklearn or Spark ML
 ```
 curl -X POST \
   -H "Content-Type:application/json" \
