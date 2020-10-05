@@ -2,9 +2,11 @@
 
 ## Overview
 
-MLfow provides a versatile scoring server based on the MLflow pyfunc flavor. In order to support multiple flavors, the MLflow scoring server accepts only JSON or CSV requests, and JSON responses.  See [Deploy MLflow models](https://mlflow.org/docs/latest/models.html#deploy-mlflow-models).
+MLfow provides a versatile scoring server based on the MLflow [Pyfunc](https://mlflow.org/docs/latest/python_api/mlflow.pyfunc.html#mlflow-pyfunc) flavor. 
+The MLflow scoring server accepts only JSON or CSV requests, and JSON responses. 
+See [Deploy MLflow models](https://mlflow.org/docs/latest/models.html#deploy-mlflow-models).
 
-This pluggable scoring server is an exploratory POC that provides the ability to plug in custom request or response payloads.
+This pluggable scoring server is an exploratory POC that offers the ability to plug in custom request or response payloads.
 It addresses the need to submit an image for scoring.
 
 ## Limitations
@@ -12,7 +14,6 @@ It addresses the need to submit an image for scoring.
 * Ideally, once this POC pluggable logic is finalized, it could/should be merged into the MLflow code base.
 * The installation of packages is rudimentary since they are installed in the current virtual environment. 
 The correct solution is to create a virtual environment on the fly like the MLflow scoring server does.
-* Docker image: TODO.
 
 ## Sample plugins
 
@@ -21,7 +22,7 @@ Each sample has a plugin.py file, sample data and a sample MLflow model.
 
 Following examples are provided:
 
-|Algorithm |  Plugin | Model | Data | Note |
+|Algorithm |  Plugin | Model | Data | Payloads |
 |-----|----------|---------|--|--|
 | Keras MNIST |  [plugin.py](plugin_samples/keras_mnist/plugin.py) | [model](plugin_samples/keras_mnist/94580121e06f483691151c8337f64b48/artifacts/keras-model) |  [mnist_0_10.png](plugin_samples/keras_mnist/data/mnist_0_10.png) | PNG image request and JSON response |
 | Sklearn Wine | [plugin.py](plugin_samples/sklearn_wine/plugin.py) |  [model](plugin_samples/sklearn_wine/7a7022b7d5ce48e4ac789808c6d3250e/artifacts/sklearn-model) | [predict-wine-quality.json](plugin_samples/data/predict-wine-quality.json) | JSON request and JSON response |
@@ -43,7 +44,6 @@ From [mlflow_pluggable_scoring_server/plugin.py](mlflow_pluggable_scoring_server
 """
 Base plugin class for pluggable scoring.
 """
-#from collection.abc import abstractmethod, ABCMeta
 from abc import abstractmethod, ABCMeta
 
 class BasePlugin(metaclass=ABCMeta):
@@ -103,7 +103,34 @@ class Plugin(BasePlugin):
         return "application/octet-stream"
 ```
 
-## Run Scoring Server
+## Run 
+
+There Two ways to run the scoring server:
+  * Local server
+  * Docker server
+
+Setup:
+```
+conda env create --file conda.yaml
+source activate mlflow-pluggable-scoring-server
+```
+
+## Run Scoring Server Locally
+
+### Usage
+```
+python -u mlflow_pluggable_scoring_server.webserver --help
+
+Options:
+  --host TEXT               Host.
+  --port INTEGER            Port.
+  --plugin-file TEXT        Plugin path.  [required]
+  --plugin-class TEXT       Plugin full class name. Default is 'plugin.Plugin'.
+  --model-uri TEXT          Model URI.  [required]
+  --packages TEXT           PyPI packages (comma delimited).
+  --conf TEXT               Webserver configuration file.
+  --help                    Show this message and exit.
+```
 
 ### Keras MNIST
 
@@ -111,7 +138,7 @@ Run with model from sample run.
 ```
 python -u -m mlflow_pluggable_scoring_server.webserver \
   --host localhost --port 5005 \
-  --plugin-path plugin_samples/keras_mnist/plugin.py \
+  --plugin-file plugin_samples/keras_mnist/plugin.py \
   --model-uri file:plugin_samples/keras_mnist/94580121e06f483691151c8337f64b48/artifacts/keras-model \
   --packages tensorflow==2.3.0,Pillow
 ```
@@ -120,7 +147,7 @@ Run with model from Model Registry.
 ```
 python -u -m mlflow_pluggable_scoring_server.webserver \
   --host localhost --port 5005 \
-  --plugin-path plugin_samples/keras_mnist/plugin.py \
+  --plugin-file plugin_samples/keras_mnist/plugin.py \
   --model-uri models:/keras_mnist/Production \
   --packages tensorflow==2.3.0,Pillow
 ```
@@ -129,7 +156,7 @@ python -u -m mlflow_pluggable_scoring_server.webserver \
 ```
 python -u -m mlflow_pluggable_scoring_server.webserver \
   --host localhost --port 5005 \
-  --plugin-path plugin_samples/sklearn_wine/plugin.py \
+  --plugin-file plugin_samples/sklearn_wine/plugin.py \
   --model-uri plugin_samples/sklearn_wine/7a7022b7d5ce48e4ac789808c6d3250e/artifacts/sklearn-model \
   --packages scikit-learn==0.20.2 
 ```
@@ -138,7 +165,7 @@ python -u -m mlflow_pluggable_scoring_server.webserver \
 ```
 python -u -m mlflow_pluggable_scoring_server.webserver \
   --host localhost --port 5005 \
-  --plugin-path plugin_samples/sklearn_wine/onnx_plugin.py \
+  --plugin-file plugin_samples/sklearn_wine/onnx_plugin.py \
   --model-uri plugin_samples/sklearn_wine/7a7022b7d5ce48e4ac789808c6d3250e/artifacts/onnx-model \
   --packages onnx==1.7.0,onnxmltools==1.7.0,onnxruntime==1.4.0
 ```
@@ -147,24 +174,54 @@ python -u -m mlflow_pluggable_scoring_server.webserver \
 ```
 python -u -m mlflow_pluggable_scoring_server.webserver \
   --host localhost --port 5005 \
-  --plugin-path plugin_samples/sparkml_wine/plugin.py \
+  --plugin-file plugin_samples/sparkml_wine/plugin.py \
   --model-uri models:/sparkml_wine/1 \
   --packages pyspark==2.4.5
 ```
 
-### Options
+
+## Run Scoring Server with Docker
+
+### Build Docker Image
+
+See [docker_build.py](mlflow_pluggable_scoring_server/docker_build.py).
+
+#### Usage
 ```
+python -u mlflow_pluggable_scoring_server.docker_build.py --help
+
 Options:
-  --host TEXT               Host.
-  --port INTEGER            Port.
-  --plugin-path TEXT        Plugin path.  [required]
-  --plugin-full-class TEXT  Plugin full class name. Default is 'plugin.Plugin'.
-  --model-uri TEXT          Model URI.  [required]
   --packages TEXT           PyPI packages (comma delimited).
-  --conf TEXT               Webserver configuration file.
-  --help                    Show this message and exit.
+  --model-uri TEXT          Model URI.  [required]
+  --plugin-file TEXT        Python plugin file.  [required]
+  --docker-image TEXT       Docker image name  [required]
+  --plugin-full-class TEXT  Plugin full class name. Default is 'plugin.Plugin'.
+  --tmp-model-dir TEXT      Temporary model directory for docker COPY. Default is './tmp'.
 ```
 
+#### Run against sample file-based URI
+```
+python -u mlflow_pluggable_scoring_server.docker_build.py \
+  --plugin-file plugin_samples/keras_mnist/plugin.py \
+  --model-uri file:plugin_samples/keras_mnist/94580121e06f483691151c8337f64b48/artifacts/keras-model \
+  --packages tensorflow==2.3.0,Pillow \
+  --docker-image mlflow_scoring_server_keras
+```
+
+#### Run against registered model URI
+```
+python -u mlflow_pluggable_scoring_server.docker_build.py \
+  --plugin-file plugin_samples/keras_mnist/plugin.py \
+  --model-uri models:keras_mnist/1 \
+  --packages tensorflow==2.3.0,Pillow \
+  --docker-image mlflow_scoring_server_keras
+```
+
+### Run Docker Container
+
+```
+docker container run -p 5005:5005 -dit --name mlflow_scoring_server_keras my_scoring_server_keras
+```
 
 
 ## Score with REST API
@@ -184,7 +241,7 @@ curl -X POST \
 ```
 
 
-### Wine - Sklearn or Spark ML
+### Wine Quality - Sklearn or Spark ML
 ```
 curl -X POST \
   -H "Content-Type:application/json" \
@@ -254,4 +311,6 @@ curl http://localhost:5005/api/swagger
                 ]
             }
         },
+       "/api/status": {
+. . .
 ```

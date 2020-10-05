@@ -1,6 +1,8 @@
 """
 MLflow pluggable scoring server.
 """
+import werkzeug
+werkzeug.cached_property = werkzeug.utils.cached_property
 
 import sys
 import os
@@ -52,6 +54,8 @@ class Predict(Resource):
         data = request.get_data()
         logging.debug(f"request.data.type: {type(data)}")
         logging.debug(f"request.data.len: {len(data)}")
+        if (len(data) == 0):
+            return make_error_response(400,"No request data")
 
         logging.debug(f"plugin: {_plugin}")
         rsp = _plugin.predict(_model, data)
@@ -79,13 +83,13 @@ class StatusCollection(Resource):
 @click.command()
 @click.option("--host", help="Host.", default="localhost", type=str)
 @click.option("--port", help="Port.", default=5005, type=int)
-@click.option("--plugin-path", help="Plugin path.", required=True, type=str)
-@click.option("--plugin-full-class", help="Plugin full class name. Default is 'plugin.Plugin'.", default="plugin.Plugin", type=str)
+@click.option("--plugin-file", help="Plugin path.", required=True, type=str)
+@click.option("--plugin-class", help="Plugin full class name. Default is 'plugin.Plugin'.", default="plugin.Plugin", type=str)
 @click.option("--model-uri", help="Model URI.", required=True, type=str)
 @click.option("--packages", help="PyPI packages (comma delimited).", default=None, type=str)
 @click.option("--conf", help="Webserver configuration file.", required=False, type=str)
 
-def main(conf, host, port, plugin_path, plugin_full_class, model_uri, packages):
+def main(conf, host, port, plugin_file, plugin_class, model_uri, packages):
     global _plugin, _model
     print("Options:")
     for k,v in locals().items():
@@ -115,7 +119,7 @@ def main(conf, host, port, plugin_path, plugin_full_class, model_uri, packages):
         run_command(f"pip install {pkg}")
  
     # Load model plugin
-    _plugin = load_plugin(plugin_path, plugin_full_class)
+    _plugin = load_plugin(plugin_file, plugin_class)
     logging.info(f"plugin.type: {type(_plugin)}")
 
     _model = _plugin.load_model(model_uri)
